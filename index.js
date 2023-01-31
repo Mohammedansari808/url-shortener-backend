@@ -121,12 +121,14 @@ app.get("/verify_link/:username/:id", async function (request, response) {
         }
         const insertData = await client.db("urlshortener").collection("login").insertOne(checkData)
 
-        // client.db("urlshortener").collection("login").updateOne({ username: username }, { $unset: { verify_link: link } })
-        // client.db("urlshortener").collection("signupusers").updateOne({ username: username }, { $unset: { verify_link: link } })
-
         if (insertData) {
             response.send({ message: "sign success" })
             await client.db("urlshortener").collection("userurls").insertOne({ username: username })
+
+            client.db("urlshortener").collection("login").updateOne({ username: username }, { $unset: { verify_link: link } })
+            client.db("urlshortener").collection("signupusers").updateOne({ username: username }, { $unset: { verify_link: link } })
+
+
         }
 
     } else {
@@ -161,6 +163,7 @@ app.post("/forgetpassword", async function (request, response) {
     const { username, email } = request.body;
     const data = await client.db("urlshortener").collection("login").findOne({ username: username })
     if (data.username == username && data.email == email) {
+        console.log("hello")
         let tempLink = ""
         const character = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789"
         const characters = character.length
@@ -175,8 +178,10 @@ app.post("/forgetpassword", async function (request, response) {
             username: username,
             tempLink: `https://ticket-book-my-show.netlify.app/verification-link/${username}/${tempLink}`,
         }
-
+        console.log(otpData)
         const checkData = await client.db("urlshortener").collection("otp").findOne({ username: username })
+
+        console.log(checkData)
         if (!checkData) {
             const otpInsertData = client.db("urlshortener").collection("otp").insertOne(otpData)
 
@@ -204,6 +209,9 @@ app.post("/forgetpassword", async function (request, response) {
                     host: "smtp.gmail.com",
                     port: process.env.port,
                     secure: false,
+                    tls: {
+                        rejectUnauthorized: false
+                    },
                     auth: {
                         user: process.env.SMTP_MAIL,
                         pass: process.env.SMTP_KEY,
@@ -221,6 +229,7 @@ app.post("/forgetpassword", async function (request, response) {
                     please paste it in the following link ${tempLink}`, // html body
                 });
 
+                response.send({ message: "link sent" });
 
                 console.log("Message sent: %s", info.messageId);
                 // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
@@ -228,7 +237,6 @@ app.post("/forgetpassword", async function (request, response) {
                 // Preview only available when sending through an Ethereal account
                 console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
                 // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
-                response.send({ message: "link sent" });
 
             }
 
@@ -294,26 +302,26 @@ app.put("/password-change/:username", resetauth, async function (request, respon
 app.post("/urlshortener/:id", async function (request, response) {
     const data = request.body
     let { id } = request.params
-    const userURL = await client.db("urlshortener").collection("userurls").findOne({ "urls.rurl": data.realurl })
+    const userURL = await client.db("urlshortener").collection("userurls").findOne({ "urls.rurl": data.rurl })
 
     if (!userURL) {
         console.log("hello")
-        shortURl.short(data.realurl, function (err, url) {
+        console.log("l")
+        shortURl.short(data.rurl, function (err, url) {
             client.db("urlshortener").collection("userurls").updateOne({ username: id }, {
                 $push: {
                     urls: {
-                        rurl: data.realurl,
+                        rurl: data.rurl,
                         surl: url
                     }
                 }
             })
-
-            response.send("success")
+            response.send({ message: "success" })
 
 
         })
     } else {
-        response.send("error")
+        response.send({ message: "error" })
     }
 
 
@@ -321,7 +329,6 @@ app.post("/urlshortener/:id", async function (request, response) {
 
 app.get("/urlshortener/:id", auth, async function (request, response) {
     const { id } = request.params
-
     const userURL = await client.db("urlshortener").collection("userurls").findOne({ username: id }, {
         projection: {
             _id: 0,
@@ -329,6 +336,29 @@ app.get("/urlshortener/:id", auth, async function (request, response) {
         }
     })
     response.send(userURL.urls)
+
+
+})
+
+app.delete("/urlshortener/:id", async function (request, response) {
+    const data = request.body
+    let { id } = request.params
+
+
+    const urldelete = client.db("urlshortener").collection("userurls").updateOne({ username: id }, {
+        $pull: {
+            urls: { surl: data.surl }
+        }
+    })
+    if (urldelete) {
+        response.send({ message: "success" })
+
+    } else {
+        response.send({ message: "error" })
+    }
+
+
+
 
 
 })
