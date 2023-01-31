@@ -11,7 +11,7 @@ import { auth } from "./middleware/auth.js";
 import nodemailer from "nodemailer"
 import { resetauth } from "./middleware/resetauth.js";
 dotenv.config()
-
+app.use(cors())
 const app = express();
 // const MONGO_URL = "mongodb://127.0.0.1";
 const client = new MongoClient(process.env.MONGO_URL)
@@ -19,7 +19,7 @@ await client.connect()
 
 console.log("Mongo is connected")
 app.use(express.json())
-app.use(cors())
+
 const PORT = process.env.PORT;
 
 app.post("/signup", async function (request, response) {
@@ -108,7 +108,7 @@ app.post("/signup", async function (request, response) {
 
 app.get("/verify_link/:username/:id", async function (request, response) {
     const { username, id } = request.params
-    const link = `http://localhost:3000/verify_link/${username}/${id}`
+    const link = `https://lovely-alfajores-3b1c69.netlify.app/verify_link/${username}/${id}`
     const isCheck = await client.db("urlshortener").collection("signupusers").findOne({ verify_link: link })
 
     if (isCheck) {
