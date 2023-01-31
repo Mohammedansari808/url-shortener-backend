@@ -207,7 +207,7 @@ app.post("/forgetpassword", async function (request, response) {
 
                 let transporter = await nodemailer.createTransport({
                     host: "smtp.gmail.com",
-                    port: 25,
+                    port: process.env.port,
                     secure: false,
                     tls: {
                         rejectUnauthorized: false
