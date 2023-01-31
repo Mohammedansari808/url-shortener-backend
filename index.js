@@ -189,7 +189,7 @@ app.post("/forgetpassword", async function (request, response) {
 
 
             setTimeout(async () => {
-                await client.db("urlshortener").collection("otp").deleteOne({ otp: otp })
+                await client.db("urlshortener").collection("otp").deleteOne({ otp: otpData.otp })
             }, 120000);
 
 
