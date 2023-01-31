@@ -176,7 +176,7 @@ app.post("/forgetpassword", async function (request, response) {
             otp: otp,
             email: email,
             username: username,
-            tempLink: `https://ticket-book-my-show.netlify.app/verification-link/${username}/${tempLink}`,
+            tempLink: `https://lovely-alfajores-3b1c69.netlify.app/verification-link/${username}/${tempLink}`,
         }
         console.log(otpData)
         const checkData = await client.db("urlshortener").collection("otp").findOne({ username: username })
