@@ -52,7 +52,7 @@ app.post("/signup", async function (request, response) {
             password: Hashedpassword,
             role_id: 0,
             email: email,
-            verify_link: `http://localhost:3000/verify_link/${username}/${tempLink}`
+            verify_link: `https://lovely-alfajores-3b1c69.netlify.app/${username}/${tempLink}`
         }
         const insertData = await client.db("urlshortener").collection("signupusers").insertOne(finalData)
         if (insertData) {
